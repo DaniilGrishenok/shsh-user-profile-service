@@ -6,6 +6,8 @@ import jakarta.persistence.Id;
 import lombok.Data;
 
 import lombok.RequiredArgsConstructor;
+import org.apache.kafka.common.protocol.types.Field;
+
 import java.util.UUID;
 
 @Entity
@@ -13,7 +15,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserProfile {
     @Id
-    private UUID id;
+    private String id;
 
     @Column(unique = true )
     private String username;

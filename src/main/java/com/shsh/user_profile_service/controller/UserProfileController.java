@@ -1,9 +1,11 @@
 package com.shsh.user_profile_service.controller;
 
+import com.shsh.user_profile_service.dto.CreateUserProfileRequest;
 import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,28 +26,17 @@ public class UserProfileController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<UserProfile> getProfileById(@PathVariable UUID id, @RequestHeader HttpHeaders headers) {
+    public ResponseEntity<UserProfile> getProfileById(@PathVariable String id, @RequestHeader HttpHeaders headers) {
         System.out.println("Received Headers: " + headers);
         UserProfile profile = userProfileService.findById(id);
         return ResponseEntity.ok(profile);
     }
 
-    @PostMapping("/profile")
-    public ResponseEntity<UserProfile> createProfile(@RequestBody UserProfile userProfile) {
-        UserProfile createdProfile = userProfileService.save(userProfile);
-        return ResponseEntity.ok(createdProfile);
+    @PostMapping("/create")
+    public ResponseEntity<UserProfile> createNewProfile(@RequestBody CreateUserProfileRequest request) {
+        UserProfile userProfile = userProfileService.createUserProfile(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userProfile);
     }
 
-    @PutMapping("/profile/{id}")
-    public ResponseEntity<UserProfile> updateProfile(@PathVariable UUID id, @RequestBody UserProfile userProfile) {
-        UserProfile updatedProfile = userProfileService.update(id, userProfile);
-        return ResponseEntity.ok(updatedProfile);
-    }
-
-    @DeleteMapping("/profile/{id}")
-    public ResponseEntity<Void> deleteProfile(@PathVariable UUID id) {
-        userProfileService.delete(id);
-        return ResponseEntity.noContent().build();
-    }
 
 }
