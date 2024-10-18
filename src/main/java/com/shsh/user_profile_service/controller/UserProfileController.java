@@ -1,6 +1,7 @@
 package com.shsh.user_profile_service.controller;
 
 import com.shsh.user_profile_service.dto.CreateUserProfileRequest;
+import com.shsh.user_profile_service.dto.UpdateUserProfileRequest;
 import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
@@ -36,6 +37,12 @@ public class UserProfileController {
     public ResponseEntity<UserProfile> createNewProfile(@RequestBody CreateUserProfileRequest request) {
         UserProfile userProfile = userProfileService.createUserProfile(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(userProfile);
+    }
+
+    @PostMapping("/update")
+    public ResponseEntity<UserProfile> updateUserProfile(@RequestBody UpdateUserProfileRequest request) {
+        UserProfile userProfile = userProfileService.update(request.getId(), request.getUserProfile());
+        return ResponseEntity.status(HttpStatus.OK).body(userProfile);
     }
 
 

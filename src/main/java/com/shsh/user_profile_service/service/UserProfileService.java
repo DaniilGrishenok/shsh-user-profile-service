@@ -3,6 +3,7 @@ package com.shsh.user_profile_service.service;
 import com.shsh.user_profile_service.dto.CreateUserProfileRequest;
 import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.repository.UserProfileRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -27,12 +28,17 @@ public class UserProfileService {
         return userProfileRepository.save(userProfile);
     }
 
+    @Transactional
     public UserProfile update(String id, UserProfile userProfile) {
         UserProfile existingProfile = getProfileById(id);
-        existingProfile.setUsername(userProfile.getUsername());
-        existingProfile.setEmail(userProfile.getEmail());
-        existingProfile.setDescriptionOfProfile(userProfile.getDescriptionOfProfile());
-        existingProfile.setStatus(userProfile.getStatus());
+        if (!existingProfile.getUsername().equals(userProfile.getUsername()))
+            existingProfile.setUsername(userProfile.getUsername());
+        if (!existingProfile.getEmail().equals(userProfile.getEmail()))
+            existingProfile.setEmail(userProfile.getEmail());
+        if (!existingProfile.getDescriptionOfProfile().equals(userProfile.getDescriptionOfProfile()))
+            existingProfile.setDescriptionOfProfile(userProfile.getDescriptionOfProfile());
+        if (!existingProfile.getStatus().equals(userProfile.getStatus()))
+            existingProfile.setStatus(userProfile.getStatus());
         return userProfileRepository.save(existingProfile);
     }
 
