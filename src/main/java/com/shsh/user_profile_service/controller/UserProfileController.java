@@ -21,14 +21,14 @@ public class UserProfileController {
 
     @GetMapping("/profiles")
     public ResponseEntity<List<UserProfile>> getAllProfiles() {
-        List<UserProfile> profiles = userProfileService.findAll();
+        List<UserProfile> profiles = userProfileService.getAllProfiles();
         return ResponseEntity.ok(profiles);
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<UserProfile> getProfileById(@PathVariable String id, @RequestHeader HttpHeaders headers) {
         System.out.println("Received Headers: " + headers);
-        UserProfile profile = userProfileService.findById(id);
+        UserProfile profile = userProfileService.getProfileById(id);
         return ResponseEntity.ok(profile);
     }
 

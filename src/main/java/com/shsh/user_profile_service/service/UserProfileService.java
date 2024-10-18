@@ -15,11 +15,11 @@ public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
 
-    public List<UserProfile> findAll() {
+    public List<UserProfile> getAllProfiles() {
         return userProfileRepository.findAll();
     }
 
-    public UserProfile findById(String id) {
+    public UserProfile getProfileById(String id) {
         return userProfileRepository.findById(id).orElseThrow(() -> new RuntimeException("Profile not found"));
     }
 
@@ -28,7 +28,7 @@ public class UserProfileService {
     }
 
     public UserProfile update(String id, UserProfile userProfile) {
-        UserProfile existingProfile = findById(id);
+        UserProfile existingProfile = getProfileById(id);
         existingProfile.setUsername(userProfile.getUsername());
         existingProfile.setEmail(userProfile.getEmail());
         existingProfile.setDescriptionOfProfile(userProfile.getDescriptionOfProfile());

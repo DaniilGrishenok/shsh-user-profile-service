@@ -6,9 +6,7 @@ import jakarta.persistence.Id;
 import lombok.Data;
 
 import lombok.RequiredArgsConstructor;
-import org.apache.kafka.common.protocol.types.Field;
 
-import java.util.UUID;
 
 @Entity
 @Data
