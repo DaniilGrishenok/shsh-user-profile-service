@@ -7,6 +7,7 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import javax.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 
@@ -29,7 +30,7 @@ public class UserProfileService {
     }
 
     @Transactional
-    public UserProfile update(String id, UserProfile userProfile) {
+    public UserProfile update(String id, @Valid UserProfile userProfile) {
         UserProfile existingProfile = getProfileById(id);
         if (!existingProfile.getUsername().equals(userProfile.getUsername()))
             existingProfile.setUsername(userProfile.getUsername());
