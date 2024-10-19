@@ -46,6 +46,7 @@ public class UserProfileService {
         userProfileRepository.deleteById(id);
     }
 
+    @Transactional
     public UserProfile createUserProfile(CreateUserProfileRequest request) {
         UserProfile userProfile = new UserProfile();
         userProfile.setId(request.getId());
