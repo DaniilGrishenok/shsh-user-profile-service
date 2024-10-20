@@ -16,15 +16,15 @@ import java.util.UUID;
 public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
-
+    @Transactional
     public List<UserProfile> getAllProfiles() {
         return userProfileRepository.findAll();
     }
-
+    @Transactional
     public UserProfile getProfileById(String id) {
         return userProfileRepository.findById(id).orElseThrow(() -> new RuntimeException("Profile not found"));
     }
-
+    @Transactional
     public UserProfile save(UserProfile userProfile) {
         return userProfileRepository.save(userProfile);
     }
@@ -42,7 +42,7 @@ public class UserProfileService {
             existingProfile.setStatus(userProfile.getStatus());
         return userProfileRepository.save(existingProfile);
     }
-
+    @Transactional
     public void delete(String id) {
         userProfileRepository.deleteById(id);
     }
