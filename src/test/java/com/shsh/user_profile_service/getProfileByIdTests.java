@@ -3,8 +3,11 @@ package com.shsh.user_profile_service;
 import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.repository.UserProfileRepository;
 import com.shsh.user_profile_service.service.UserProfileService;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.MockitoAnnotations;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
@@ -14,14 +17,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
 
-@SpringBootTest
-class UserProfileServiceGetProfileByIdTests {
+class getProfileByIdTests {
 
-	@MockBean
+	@Mock
 	private UserProfileRepository userProfileRepository;
 
 	@InjectMocks
 	private UserProfileService userProfileService;
+
+	@BeforeEach
+	void setUp() {
+		MockitoAnnotations.openMocks(this);
+	}
 
 	@Test
 	void getProfileByIdSuccesTest(){
@@ -53,7 +60,7 @@ class UserProfileServiceGetProfileByIdTests {
 			userProfileService.getProfileById("0");
 		});
 
-		assertEquals("Profile not found", exception);
+		assertEquals("Profile not found", exception.getMessage());
 	}
 
 }
