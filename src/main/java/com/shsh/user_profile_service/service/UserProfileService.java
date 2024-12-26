@@ -68,4 +68,8 @@ public class UserProfileService {
         return user.map(UserProfile::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь с username '" + username + "' не найден"));
     }
+
+    public boolean existsById(String userId) {
+        return userProfileRepository.existsById(userId);
+    }
 }

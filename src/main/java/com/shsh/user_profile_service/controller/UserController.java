@@ -4,21 +4,17 @@ import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/ups/api")
 @RequiredArgsConstructor
 public class UserController {
     private final UserProfileService userProfileService;
 
-    // Поиск пользователей по подстроке в username
     @GetMapping("/search")
     public ResponseEntity<?> searchUsers(@RequestParam String query) {
         List<UserProfile> users = userProfileService.findUsersByUsernameSubstring(query);
@@ -27,8 +23,12 @@ public class UserController {
         }
         return ResponseEntity.ok(users);
     }
-
-    // Получение ID пользователя по username
+    @GetMapping("/{userId}/exists")
+    public ResponseEntity<Boolean> checkUserExists(@PathVariable String userId) {
+        boolean exists = userProfileService.existsById(userId);
+        return ResponseEntity.ok(exists);
+    }
+        // Получение ID пользователя по username
     @GetMapping("/id-by-username")
     public ResponseEntity<?> getIdByUsername(@RequestParam String username) {
         try {
@@ -42,6 +42,5 @@ public class UserController {
 
     private record IdResponse(String id) {}
 
-    // DTO для ошибок
     private record ErrorResponse(String message) {}
 }
