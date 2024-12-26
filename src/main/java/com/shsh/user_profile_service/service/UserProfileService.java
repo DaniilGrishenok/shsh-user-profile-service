@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -47,14 +48,24 @@ public class UserProfileService {
         userProfileRepository.deleteById(id);
     }
 
-    @Transactional
     public UserProfile createUserProfile(CreateUserProfileRequest request) {
         UserProfile userProfile = new UserProfile();
         userProfile.setId(request.getId());
-        userProfile.setUsername(request.getUsername());
+        userProfile.setUsername(request.getUsername()); // Проверьте, что здесь используется username
         userProfile.setEmail(request.getEmail());
         userProfile.setDescriptionOfProfile("");
         userProfile.setStatus("");
         return userProfileRepository.save(userProfile);
+    }
+
+    public List<UserProfile> findUsersByUsernameSubstring(String substring) {
+        return userProfileRepository.findByUsernameContainingIgnoreCase(substring);
+    }
+
+    // Получение ID пользователя по username
+    public String getIdByUsername(String username) {
+        Optional<UserProfile> user = userProfileRepository.findByUsername(username);
+        return user.map(UserProfile::getId)
+                .orElseThrow(() -> new IllegalArgumentException("Пользователь с username '" + username + "' не найден"));
     }
 }
