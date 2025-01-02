@@ -1,13 +1,18 @@
 package com.shsh.user_profile_service.service;
 
 import com.shsh.user_profile_service.dto.CreateUserProfileRequest;
+import com.shsh.user_profile_service.dto.UserStatus;
 import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.repository.UserProfileRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.validation.Valid;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -17,6 +22,28 @@ import java.util.UUID;
 public class UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
+    private final RedisTemplate<String, String> redisTemplate;
+    public List<UserStatus> getStatuses(List<String> userIds) {
+        return userIds.stream()
+                .map(this::getStatus)
+                .toList();
+    }
+    public UserStatus getStatus(String userId) {
+        String status = redisTemplate.opsForValue().get("user:" + userId);
+        if (status == null) {
+            status = "offline";
+        }
+
+        // Извлечение времени последнего взаимодействия
+        String lastPingAt = redisTemplate.opsForValue().get("user:" + userId + ":lastPingAt");
+        LocalDateTime lastSeen = null;
+        if (lastPingAt != null) {
+            lastSeen = Instant.ofEpochMilli(Long.parseLong(lastPingAt)).atZone(ZoneId.of("UTC")).toLocalDateTime();
+        }
+
+        return new UserStatus(userId, status, lastSeen != null ? lastSeen.toString() : null);
+    }
+
     @Transactional
     public List<UserProfile> getAllProfiles() {
         return userProfileRepository.findAll();
