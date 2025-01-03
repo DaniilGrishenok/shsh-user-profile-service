@@ -9,8 +9,10 @@ import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.io.IOException;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -23,6 +25,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserProfileService {
 
+    private final S3Service s3Service;
     private final UserProfileRepository userProfileRepository;
     private final RedisTemplate<String, String> redisTemplate;
     public List<UserStatus> getStatuses(List<String> userIds) {
@@ -30,6 +33,43 @@ public class UserProfileService {
                 .map(this::getStatus)
                 .toList();
     }
+    public String uploadAvatarAndUpdateProfile(String userId, MultipartFile file) throws IOException {
+        // Загрузка файла в S3
+        String avatarUrl = s3Service.uploadAvatar(userId, file);
+
+        // Обновление ссылки на аватар в базе данных
+        Optional<UserProfile> userOptional = userProfileRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            UserProfile user = userOptional.get();
+            user.setAvatarUrl(avatarUrl);
+            userProfileRepository.save(user);
+            return "Аватар успешно загружен и сохранен!";
+        } else {
+            throw new RuntimeException("Profile not found");
+        }
+    }
+    public boolean deleteAvatarAndUpdateProfile(String userId) {
+
+        Optional<UserProfile> userOptional = userProfileRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            UserProfile user = userOptional.get();
+            String avatarUrl = user.getAvatarUrl();
+
+            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+                String fileName = avatarUrl.substring(avatarUrl.lastIndexOf("/") + 1);
+                s3Service.deleteAvatarFromS3(userId, fileName);
+
+                user.setAvatarUrl(null);
+                userProfileRepository.save(user);
+
+                return true;
+            } else {
+                return false;
+            }
+        }
+        return false;
+    }
+
     public UserStatus getStatus(String userId) {
         String status = redisTemplate.opsForValue().get("user:" + userId);
         if (status == null) {
@@ -107,6 +147,8 @@ public class UserProfileService {
         existingProfile.setLastUpdated(LocalDateTime.now());
         return userProfileRepository.save(existingProfile);
     }
+
+
     @Transactional
     public boolean updatePremiumStatus(String userId, Boolean update){
         UserProfile userProfile = getProfileById(userId);

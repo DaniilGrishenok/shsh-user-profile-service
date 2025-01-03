@@ -36,6 +36,8 @@ public class UserProfile {
 
     @Size(max = 500, message = "Описание не должно превышать 500 символов")
     private String descriptionOfProfile;
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
+    private boolean isShshDeveloper = false;
 
     @Column(nullable = false, updatable = false)
     private LocalDateTime registrationDate = LocalDateTime.now();
@@ -46,15 +48,14 @@ public class UserProfile {
     @Enumerated(EnumType.STRING)
     private Gender gender;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean isActive = true;
-    @Column(nullable = false)
-    private boolean isShshDeveloper = false;
+
 
     private String avatarUrl;
     private String chatWallpaperUrl;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
     private boolean isPremium = false;
 
     private LocalDateTime premiumExpiresAt = null;
