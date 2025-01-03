@@ -16,7 +16,11 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserController {
     private final UserProfileService userProfileService;
-
+    /*
+    *
+    *
+    *
+    * */
 
     @GetMapping("/users/{userId}/status")
     public ResponseEntity<GetStatusResponse> getStatus(@PathVariable String userId) {

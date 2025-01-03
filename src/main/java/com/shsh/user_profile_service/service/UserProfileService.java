@@ -1,6 +1,7 @@
 package com.shsh.user_profile_service.service;
 
 import com.shsh.user_profile_service.dto.CreateUserProfileRequest;
+import com.shsh.user_profile_service.dto.UpdateUserProfileRequest;
 import com.shsh.user_profile_service.dto.UserStatus;
 import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.repository.UserProfileRepository;
@@ -14,6 +15,7 @@ import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -34,7 +36,6 @@ public class UserProfileService {
             status = "offline";
         }
 
-        // Извлечение времени последнего взаимодействия
         String lastPingAt = redisTemplate.opsForValue().get("user:" + userId + ":lastPingAt");
         LocalDateTime lastSeen = null;
         if (lastPingAt != null) {
@@ -43,6 +44,23 @@ public class UserProfileService {
 
         return new UserStatus(userId, status, lastSeen != null ? lastSeen.toString() : null);
     }
+    @Transactional
+    public boolean checkAndUpdatePremiumStatus(String userId) {
+        UserProfile profile = getProfileById(userId);
+
+        if (profile.isPremium() && (profile.getPremiumExpiresAt() == null || profile.getPremiumExpiresAt().isBefore(LocalDateTime.now()))) {
+            profile.setPremium(false);
+            userProfileRepository.save(profile);
+            return false;
+        }
+        return profile.isPremium();
+    }
+    /*
+    * метод установки премиума
+    * метод бана пользователей
+    * метод проверки забанен ли пользак
+    * метод
+    * */
 
     @Transactional
     public List<UserProfile> getAllProfiles() {
@@ -58,18 +76,44 @@ public class UserProfileService {
     }
 
     @Transactional
-    public UserProfile update(String id, @Valid UserProfile userProfile) {
-        UserProfile existingProfile = getProfileById(id);
-        if (!existingProfile.getUsername().equals(userProfile.getUsername()))
-            existingProfile.setUsername(userProfile.getUsername());
-        if (!existingProfile.getEmail().equals(userProfile.getEmail()))
-            existingProfile.setEmail(userProfile.getEmail());
-        if (!existingProfile.getDescriptionOfProfile().equals(userProfile.getDescriptionOfProfile()))
-            existingProfile.setDescriptionOfProfile(userProfile.getDescriptionOfProfile());
-        if (!existingProfile.getStatus().equals(userProfile.getStatus()))
-            existingProfile.setStatus(userProfile.getStatus());
+    public UserProfile update(@Valid UpdateUserProfileRequest request) {
+        UserProfile existingProfile = userProfileRepository.findByUsername(request.getUsername());
+
+        if (request.getUsername() != null && !Objects.equals(existingProfile.getUsername(), request.getUsername())) {
+            existingProfile.setUsername(request.getUsername());
+        }
+        if (request.getEmail() != null && !Objects.equals(existingProfile.getEmail(), request.getEmail())) {
+            existingProfile.setEmail(request.getEmail());
+        }
+        if (request.getDescriptionOfProfile() != null && !Objects.equals(existingProfile.getDescriptionOfProfile(), request.getDescriptionOfProfile())) {
+            existingProfile.setDescriptionOfProfile(request.getDescriptionOfProfile());
+        }
+        if (request.getStatus() != null && !Objects.equals(existingProfile.getStatus(), request.getStatus())) {
+            existingProfile.setStatus(request.getStatus());
+        }
+        if (request.getAvatarUrl() != null && !Objects.equals(existingProfile.getAvatarUrl(), request.getAvatarUrl())) {
+            existingProfile.setAvatarUrl(request.getAvatarUrl());
+        }
+        if (request.getChatWallpaperUrl() != null && !Objects.equals(existingProfile.getChatWallpaperUrl(), request.getChatWallpaperUrl())) {
+            existingProfile.setChatWallpaperUrl(request.getChatWallpaperUrl());
+        }
+        if (request.getGender() != null && !Objects.equals(existingProfile.getGender(), request.getGender())) {
+            existingProfile.setGender(request.getGender());
+        }
+        if (request.getDateOfBirth() != null && !Objects.equals(existingProfile.getDateOfBirth(), request.getDateOfBirth())) {
+            existingProfile.setDateOfBirth(request.getDateOfBirth());
+        }
+
+        existingProfile.setLastUpdated(LocalDateTime.now());
         return userProfileRepository.save(existingProfile);
     }
+    @Transactional
+    public boolean updatePremiumStatus(String userId, Boolean update){
+        UserProfile userProfile = getProfileById(userId);
+        userProfile.setPremium(update);
+        return true;
+    }
+
     @Transactional
     public void delete(String id) {
         userProfileRepository.deleteById(id);
@@ -78,10 +122,11 @@ public class UserProfileService {
     public UserProfile createUserProfile(CreateUserProfileRequest request) {
         UserProfile userProfile = new UserProfile();
         userProfile.setId(request.getId());
-        userProfile.setUsername(request.getUsername()); // Проверьте, что здесь используется username
+        userProfile.setUsername(request.getUsername());
         userProfile.setEmail(request.getEmail());
         userProfile.setDescriptionOfProfile("");
         userProfile.setStatus("");
+        userProfile.setGender(null);
         return userProfileRepository.save(userProfile);
     }
 
@@ -89,9 +134,8 @@ public class UserProfileService {
         return userProfileRepository.findByUsernameContainingIgnoreCase(substring);
     }
 
-    // Получение ID пользователя по username
     public String getIdByUsername(String username) {
-        Optional<UserProfile> user = userProfileRepository.findByUsername(username);
+        Optional<UserProfile> user = Optional.ofNullable(userProfileRepository.findByUsername(username));
         return user.map(UserProfile::getId)
                 .orElseThrow(() -> new IllegalArgumentException("Пользователь с username '" + username + "' не найден"));
     }

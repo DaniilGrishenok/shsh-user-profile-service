@@ -1,6 +1,7 @@
 package com.shsh.user_profile_service.controller;
 
 import com.shsh.user_profile_service.dto.CreateUserProfileRequest;
+import com.shsh.user_profile_service.dto.PremiumStatusResponse;
 import com.shsh.user_profile_service.dto.UpdateUserProfileRequest;
 import com.shsh.user_profile_service.model.UserProfile;
 import com.shsh.user_profile_service.service.UserProfileService;
@@ -24,18 +25,20 @@ public class UserProfileController {
 
     private final UserProfileService userProfileService;
 
-    @GetMapping("/profiles")
-    public ResponseEntity<List<UserProfile>> getAllProfiles() {
-        List<UserProfile> profiles = userProfileService.getAllProfiles();
-        return ResponseEntity.ok(profiles);
-    }
-
     @GetMapping("/{id}")
-    public ResponseEntity<UserProfile> getProfileById(@PathVariable String id, @RequestHeader HttpHeaders headers) {
-        System.out.println("Received Headers: " + headers);
+    public ResponseEntity<UserProfile> getProfileById(@PathVariable String id) {
         UserProfile profile = userProfileService.getProfileById(id);
         return ResponseEntity.ok(profile);
     }
+    @GetMapping("/{id}/check-premium")
+    public ResponseEntity<PremiumStatusResponse> checkPremiumStatus(@PathVariable String id) {
+        log.info("Checking premium status for user with ID: {}", id);
+        UserProfile profile = userProfileService.getProfileById(id);
+        boolean isPremium = userProfileService.checkAndUpdatePremiumStatus(id);
+        return ResponseEntity.ok(new PremiumStatusResponse(isPremium, profile.getPremiumExpiresAt()));
+    }
+
+
 
     @PostMapping("/create")
     public ResponseEntity<UserProfile> createNewProfile(@RequestBody CreateUserProfileRequest request) {
@@ -46,7 +49,7 @@ public class UserProfileController {
 
     @PostMapping("/update")
     public ResponseEntity<UserProfile> updateUserProfile(@RequestBody UpdateUserProfileRequest request) {
-        UserProfile userProfile = userProfileService.update(request.getId(), request.getUserProfile());
+        UserProfile userProfile = userProfileService.update(request);
         return ResponseEntity.status(HttpStatus.OK).body(userProfile);
     }
 
