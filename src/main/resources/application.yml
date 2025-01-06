@@ -1,5 +1,9 @@
 
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   application:
     name: user-profile-service
   kafka:
@@ -29,8 +33,6 @@ server:
     context-path: /
 
 eureka:
-  instance:
-    hostname: localhost
   client:
     service-url:
       defaultZone: http://localhost:8761/eureka/

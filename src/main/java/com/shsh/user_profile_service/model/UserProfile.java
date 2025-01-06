@@ -51,8 +51,12 @@ public class UserProfile {
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT TRUE")
     private boolean isActive = true;
 
-
+    @Size(max = 512, message = "URL аватара слишком длинный")
+    @Column(length = 512)
     private String avatarUrl;
+
+    @Size(max = 512, message = "URL обоев слишком длинный")
+    @Column(length = 512)
     private String chatWallpaperUrl;
 
     @Column(nullable = false, columnDefinition = "BOOLEAN DEFAULT FALSE")
@@ -60,5 +64,4 @@ public class UserProfile {
 
     private LocalDateTime premiumExpiresAt = null;
     private String nicknameEmoji;
-
 }

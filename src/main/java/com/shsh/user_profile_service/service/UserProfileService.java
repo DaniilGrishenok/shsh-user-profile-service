@@ -25,7 +25,6 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserProfileService {
 
-    private final S3Service s3Service;
     private final UserProfileRepository userProfileRepository;
     private final RedisTemplate<String, String> redisTemplate;
     public List<UserStatus> getStatuses(List<String> userIds) {
@@ -33,42 +32,12 @@ public class UserProfileService {
                 .map(this::getStatus)
                 .toList();
     }
-    public String uploadAvatarAndUpdateProfile(String userId, MultipartFile file) throws IOException {
-        // Загрузка файла в S3
-        String avatarUrl = s3Service.uploadAvatar(userId, file);
-
-        // Обновление ссылки на аватар в базе данных
-        Optional<UserProfile> userOptional = userProfileRepository.findById(userId);
-        if (userOptional.isPresent()) {
-            UserProfile user = userOptional.get();
-            user.setAvatarUrl(avatarUrl);
-            userProfileRepository.save(user);
-            return "Аватар успешно загружен и сохранен!";
-        } else {
-            throw new RuntimeException("Profile not found");
-        }
-    }
-    public boolean deleteAvatarAndUpdateProfile(String userId) {
-
-        Optional<UserProfile> userOptional = userProfileRepository.findById(userId);
-        if (userOptional.isPresent()) {
-            UserProfile user = userOptional.get();
-            String avatarUrl = user.getAvatarUrl();
-
-            if (avatarUrl != null && !avatarUrl.isEmpty()) {
-                String fileName = avatarUrl.substring(avatarUrl.lastIndexOf("/") + 1);
-                s3Service.deleteAvatarFromS3(userId, fileName);
-
-                user.setAvatarUrl(null);
-                userProfileRepository.save(user);
-
-                return true;
-            } else {
-                return false;
-            }
-        }
-        return false;
-    }
+    /*
+     * метод установки премиума
+     * метод бана пользователей
+     * метод проверки забанен ли пользак
+     *
+     * */
 
     public UserStatus getStatus(String userId) {
         String status = redisTemplate.opsForValue().get("user:" + userId);
@@ -95,12 +64,7 @@ public class UserProfileService {
         }
         return profile.isPremium();
     }
-    /*
-    * метод установки премиума
-    * метод бана пользователей
-    * метод проверки забанен ли пользак
-    * метод
-    * */
+
 
     @Transactional
     public List<UserProfile> getAllProfiles() {
@@ -148,11 +112,32 @@ public class UserProfileService {
         return userProfileRepository.save(existingProfile);
     }
 
+    @Transactional
+    public boolean updatePremiumStatus(String userId, String isPremium) {
+        boolean premiumValue = Boolean.parseBoolean(isPremium); // Преобразование строки в boolean
+        UserProfile userProfile = getProfileById(userId);
+
+        if (premiumValue) {
+            if (userProfile.getPremiumExpiresAt() == null || userProfile.getPremiumExpiresAt().isBefore(LocalDateTime.now())) {
+                userProfile.setPremiumExpiresAt(LocalDateTime.now().plusMonths(1));
+            }
+        } else {
+            userProfile.setPremiumExpiresAt(null);
+        }
+
+        userProfile.setPremium(premiumValue);
+        userProfile.setLastUpdated(LocalDateTime.now());
+        userProfileRepository.save(userProfile);
+        return true;
+    }
+
 
     @Transactional
-    public boolean updatePremiumStatus(String userId, Boolean update){
+    public boolean updateEmoji(String userId, String emoji) {
         UserProfile userProfile = getProfileById(userId);
-        userProfile.setPremium(update);
+        userProfile.setNicknameEmoji(emoji);
+        userProfile.setLastUpdated(LocalDateTime.now());
+        userProfileRepository.save(userProfile);
         return true;
     }
 
